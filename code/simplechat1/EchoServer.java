@@ -48,8 +48,25 @@ public class EchoServer extends AbstractServer
   public void handleMessageFromClient
     (Object msg, ConnectionToClient client)
   {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+    if(msg.toString().contains("#login")){
+      if(client.getInfo("id") == null){
+        System.out.println(msg);
+        client.setInfo("id", msg.toString().split("<")[1].substring(0, msg.toString().split("<")[1].length() - 1));  
+      }
+      else{
+        try { client.sendToClient("ERROR: #login command should only be used at the begining."); }
+        catch(IOException ioe) {}
+      }
+    }
+    else if(client.getInfo("id") == null){
+      try { client.sendToClient("ERROR: #login command should be reveiced first."); client.close(); }
+      catch(IOException ioe) {}
+      
+    }
+    else{
+      System.out.println("Message received: " + msg + " from " + client.getInfo("id"));
+      this.sendToAllClients(client.getInfo("id") + ": " + msg);
+    }
   }
     
   /**
@@ -71,6 +88,27 @@ public class EchoServer extends AbstractServer
     System.out.println
       ("Server has stopped listening for connections.");
   }
+
+  /**
+   * This method overrides the one in the superclass.  Called
+   * when the a client is connected to the server.
+   *
+  protected void clientConnected(ConnectionToClient client)
+  {
+    System.out.println
+      ("A client is connected.");
+  }
+  
+  /**
+   * This method overrides the one in the superclass.  Called
+   * when the a client is disconnected to the server.
+   *
+  protected void clientException(ConnectionToClient client,
+  Throwable exception)
+  {
+    System.out.println
+      ("A client is disconnected.");
+  }*/
   
   //Class methods ***************************************************
   

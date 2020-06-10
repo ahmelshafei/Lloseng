@@ -25,7 +25,8 @@ public class ChatClient extends AbstractClient
    * The interface type variable.  It allows the implementation of 
    * the display method in the client.
    */
-  ChatIF clientUI; 
+  ChatIF clientUI;
+  String id; 
 
   
   //Constructors ****************************************************
@@ -38,12 +39,15 @@ public class ChatClient extends AbstractClient
    * @param clientUI The interface type variable.
    */
   
-  public ChatClient(String host, int port, ChatIF clientUI) 
+  public ChatClient(String id, String host, int port, ChatIF clientUI) 
     throws IOException 
   {
     super(host, port); //Call the superclass constructor
     this.clientUI = clientUI;
-    openConnection();
+    this.id = id;
+    try { openClientConnection(); }
+    catch (IOException ioe) { }//closeConnection(); }
+
   }
 
   
@@ -88,7 +92,41 @@ public class ChatClient extends AbstractClient
       closeConnection();
     }
     catch(IOException e) {}
+    
     System.exit(0);
+  }
+
+  /**
+   * Hook method called after the connection has been closed.
+   */
+  protected void connectionClosed() 
+  {
+    clientUI.display
+    ("This client is disconnected from the server");
+  }
+
+  /**
+   * Hook method called each time an exception
+   * is raised by the client listening thread.
+   *
+   * @param exception the exception raised.
+   */
+  protected void connectionException(Exception exception) 
+  {
+    clientUI.display
+    ("The server has shut down.");
+    try { closeConnection(); }
+    catch (IOException ioe) {}
+    //quit();
+  }
+
+  public void openClientConnection() throws IOException {
+    openConnection();
+    clientUI.display
+    (id + " has logged on.");
+
+    handleMessageFromClientUI("#login <" + id + ">");
+
   }
 }
 //End of ChatClient class
